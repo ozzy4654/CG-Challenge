@@ -9,7 +9,7 @@ class ClassLocationsRepository (private val apiInterface: LocationsInterface) : 
         return safeApiCall(
             //await the result of deferred type
             call = { apiInterface.getClassLocationsAsync(lat, long, rad).await() },
-            error = "Error fetching questions"
+            error = "Error fetching locations"
             //convert to mutable list
         )
     }

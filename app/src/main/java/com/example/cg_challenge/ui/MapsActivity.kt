@@ -7,11 +7,15 @@ import android.location.Location
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.cg_challenge.R
+import com.example.cg_challenge.data.network.models.PlaceData
 import com.example.cg_challenge.utils.createNetworkCallback
 import com.example.cg_challenge.utils.networkRequest
 import com.google.android.gms.common.api.Status
@@ -25,16 +29,17 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import kotlinx.android.synthetic.main.activity_maps.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var classLocationsViewModel: ClassLocationsViewModel
-//    private lateinit var mGeoDataClient :
+    private lateinit var classLocationsObserver : Observer<MutableList<PlaceData>>
+    private lateinit var autocompleteFragment : AutocompleteSupportFragment
 
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 3
     private var mLocationPermissionGranted = false
@@ -43,74 +48,47 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
     private var cm: ConnectivityManager? = null
     private var currentLocation: LatLng? = null
-
+    private var isLaunch = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
 
+        search_progress_indicator.visibility =  View.VISIBLE
+
         setUpNetworkWatcher()
 
-        // Create the observer which updates the UI.
-        //saved instance state call since we don't want to keep recreating frags everytime phone rotates
-        if (savedInstanceState == null) {
-            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-            val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
-            mapFragment.getMapAsync(this)
-        }
+        // Initialize Places.
+        Places.initialize(applicationContext, this.getString(R.string.google_maps_key))
 
-// Construct a GeoDataClient.
-//        mGeoDataClient = Places.getGeoDataClient(this, null);
-//
-//        // Construct a PlaceDetectionClient.
-//        mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
 
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
-
         classLocationsViewModel = ViewModelProvider(this)
             .get(ClassLocationsViewModel::class.java)
 
-        classLocationsViewModel.getNearByClassLocations("30.406991", "-97.720310", "25")
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
 
-        println("THE PLACE NAMEME  " + classLocationsViewModel.classLocationsLiveData.value?.get(4)?.placeName)
+        mapFragment.getMapAsync(this)
+
+        // Initialize the AutocompleteSupportFragment.
+        autocompleteFragment = (supportFragmentManager
+            .findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment)
 
 
-//        // Initialize the AutocompleteSupportFragment.
-//        val autocompleteFragment =
-//            supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment?
-//
-//
-//        // Initialize Places.
-//        Places.initialize(applicationContext, "AIzaSyDMwCasElBGyP6fh_n6H7l4C5a9LFDU4zM")
-//
-//
-//        // Create a new Places client instance.
-//        val placesClient: PlacesClient = Places.createClient(this)
-//
-//        // Specify the types of place data to return.
-//        autocompleteFragment?.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME))
-//
-//        // Set up a PlaceSelectionListener to handle the response.
-//        autocompleteFragment?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-//            override fun onPlaceSelected(place: Place) {
-//                // TODO: Get info about the selected place.
-//                println("${place.latLng}")
-////                Log.i(FragmentActivity.TAG, "Place: " + place.name + ", " + place.id)
-//            }
-//
-//            override fun onError(status: Status) {
-//                // TODO: Handle the error.
-////                Log.i(FragmentActivity.TAG, "An error occurred: $status")
-//            }
-//        })
+        if (savedInstanceState == null) {
+
+            classLocationsViewModel.getNearByClassLocations(
+                currentLocation?.latitude.toString(),
+                currentLocation?.longitude.toString(),
+                "25"
+            )
+        } else {
+            isLaunch = false
+        }
 
     }
 
@@ -171,11 +149,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         when (requestCode) {
@@ -200,32 +174,119 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+        search_progress_indicator.visibility = View.INVISIBLE
         mMap = googleMap
 
-        updateLocationUI()
-        getDeviceLocation()
+        setPlaceObserver()
+        setPlaceSelectionListener()
 
-        if (classLocationsViewModel.classLocationsLiveData.value != null) {
-            // we want to set our markers
-            classLocationsViewModel.classLocationsLiveData.value?.forEach {
-//                val sydney =
-                mMap.addMarker(
-                    MarkerOptions()
-                        .position(
-                            LatLng(
-                                it.placeLatitude.toDouble(),
-                                it.placeLongitude.toDouble()
-                            )
-                        )
-                        .title(it.placeName)
-                )
-            }
-        }
-        // Add a marker in Sydney and move the camera
-//        val sydney = LatLng(-34.0, 151.0)
-//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+        //checks for permissions
+        updateLocationUI()
+
+        // on app launch we check for local locations
+        if (isLaunch)
+            getDeviceLocation()
+
+        if (classLocationsViewModel.lastSearch != null)
+            setMarkers(classLocationsViewModel.classLocationsLiveData.value!!)
+
     }
 
+    private fun setPlaceSelectionListener() {
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(
+            listOf(
+                Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG
+            )
+        )
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                search_progress_indicator.visibility = View.VISIBLE
+                classLocationsViewModel.lastSearch = place.latLng
+                // clear the map markers for performance.
+                mMap.clear()
+
+                //todo  create a function or view model to strip this out of the activity
+                classLocationsViewModel.getNearByClassLocations(
+                    place.latLng?.latitude.toString(),
+                    place.latLng?.longitude.toString(),
+                    "20"
+                )
+
+
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, 12f))
+//                Log.i(FragmentActivity.TAG, "Place: " + place.name + ", " + place.id)
+            }
+
+            override fun onError(status: Status) {
+                // TODO: Handle the error.
+//                Log.i(FragmentActivity.TAG, "An error occurred: $status")
+            }
+        })
+
+    }
+
+    private fun setMarkers(newList : MutableList<PlaceData>) {
+        newList.forEach {
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(
+                        LatLng(
+                            it.placeLatitude.toDouble(),
+                            it.placeLongitude.toDouble()
+                        )
+                    )
+                    .title(it.placeName)
+            )
+        }
+        search_progress_indicator.visibility = View.INVISIBLE
+    }
+
+    private fun setPlaceObserver () {
+        // Create the observer which updates the UI.
+        classLocationsObserver = Observer<MutableList<PlaceData>> { newList ->
+            search_progress_indicator.visibility = View.VISIBLE
+            run {
+                //scoreValue.text = newScore.toString()
+                if (newList.isNotEmpty()) {
+                    newList.forEach {
+                        mMap.addMarker(
+                            MarkerOptions()
+                                .position(
+                                    LatLng(
+                                        it.placeLatitude.toDouble(),
+                                        it.placeLongitude.toDouble()
+                                    )
+                                )
+                                .title(it.placeName)
+                        )
+                    }
+
+
+
+
+                } else {
+                    Toast.makeText(
+                        this@MapsActivity,
+                        getString(R.string.toast_no_classes),
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                }
+
+                search_progress_indicator.visibility = View.INVISIBLE
+            }
+        }
+        // Observe the LiveData, passing in this activity as the LifecycleOwner and the observer.
+        classLocationsViewModel.classLocationsLiveData.observe(
+            this@MapsActivity,
+            classLocationsObserver
+        )
+    }
 
     private fun updateLocationUI() {
         if (mMap == null) {
@@ -259,9 +320,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
                         mLastKnownLocation = location
-                        currentLocation = LatLng(location.latitude, location.longitude)
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 12f))
+                        currentLocation = LatLng(mLastKnownLocation!!.latitude, mLastKnownLocation!!.longitude)
+                    } else {
+                        currentLocation = mDefaultLocation
                     }
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 12f))
+                    isLaunch = false
+
                 }
             }
 

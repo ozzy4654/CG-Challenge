@@ -6,6 +6,7 @@
     <string name="network_alert_title">No Internet Connection</string>
     <string name="network_alert_message">Loss of a Data connection. Please try connecting to WIFI or check your service provider</string>
     <string name="dialog_pos_button_text">Okay</string>
+    <string name="toast_no_classes">Sorry, there are no Camp Gladiator Classes near by. Please try another search.</string>
 
 
 </resources>
