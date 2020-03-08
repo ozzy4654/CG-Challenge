@@ -9,7 +9,8 @@ data class PlaceData(
     @SerializedName("placeLongitude")
     val placeLongitude: String,
     @SerializedName("placeName")
-    val placeName: String//,
+    val placeName: String
+    //,
 //    @SerializedName("distance")
 //    val distance: String,
 //    @SerializedName("location")

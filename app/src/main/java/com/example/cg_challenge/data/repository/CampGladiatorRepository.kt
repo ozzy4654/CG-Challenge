@@ -1,9 +1,9 @@
 package com.example.cg_challenge.data.repository
 
-import com.example.cg_challenge.data.network.LocationsInterface
+import com.example.cg_challenge.data.network.CampGladiatorInterface
 import com.example.cg_challenge.data.network.models.ClassLocationsResponse
 
-class ClassLocationsRepository (private val apiInterface: LocationsInterface) : BaseRepository() {
+class CampGladiatorRepository (private val apiInterface: CampGladiatorInterface) : BaseRepository() {
 
     suspend fun getNearByClassLocationsResponse(lat : String, long : String, rad : String): ClassLocationsResponse? {
         return safeApiCall(

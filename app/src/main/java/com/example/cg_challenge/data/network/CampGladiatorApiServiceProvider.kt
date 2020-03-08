@@ -7,17 +7,17 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object ApiServiceProvider {
+object CampGladiatorApiServiceProvider {
 
     /**
-     * Instance of the [LocationsInterface] service that is ready to use.
+     * Instance of the [CampGladiatorInterface] service that is ready to use.
      */
-    val classLocationsService: LocationsInterface
+    val CLASS_CAMP_GLADIATOR_SERVICE: CampGladiatorInterface
 
     init {
         val client = createOkHttpClient()
-        classLocationsService = provideStackExchangeRetrofit(client, provideGson())
-            .create(LocationsInterface::class.java)
+        CLASS_CAMP_GLADIATOR_SERVICE = provideStackExchangeRetrofit(client, provideGson())
+            .create(CampGladiatorInterface::class.java)
     }
 
     private fun createOkHttpClient(): OkHttpClient {
