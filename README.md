@@ -22,17 +22,17 @@ Please keep in mind the user experience and best practices for your respective p
 
 Choose one of the following ways to get your API key from Android Studio:<br>
 
-<H4>The fast, easy way:</H4>
-Use the link provided in the google_maps_api.xml file that Android Studio created for you:<br>
-Copy the link provided in the google_maps_api.xml file and paste it into your browser. 
+<Strong>The fast, easy way:</Strong><br>
+Use the link provided in the <Strong>google_maps_api.xml</Strong> file that Android Studio created for you:<br>
+Copy the link provided in the <Strong>google_maps_api.xml</Strong> file and paste it into your browser. 
 <br>The link takes you to the Google Cloud Platform Console and supplies the required information to the Google Cloud Platform Console via URL parameters, thus reducing the manual input required from you.
 <br>Follow the instructions to create a new project on the Google Cloud Platform Console or select an existing project.
 Create an Android-restricted API key for your project.
 Copy the resulting API key, go back to Android Studio, and paste the API key into the <string> element in the google_maps_api.xml file.
 
-<H4>A slightly less fast way:</H4> 
-<br>Use the credentials provided in the google_maps_api.xml file that Android Studio created for you:
-Copy the credentials provided in the google_maps_api.xml file.
+<Strong>A slightly less fast way:</Strong> <br>
+Use the credentials provided in the <Strong>google_maps_api.xml</Strong> file that Android Studio created for you:
+<br>Copy the credentials provided in the <Strong>google_maps_api.xml</Strong> file.
 Go to the Google Cloud Platform Console in your browser.
 Use the copied credentials to add your app to an existing API key or to create a new API key.
 The full process for getting an API key: If neither of the above options works for your situation, see https://developers.google.com/maps/documentation/android-sdk/get-api-key
