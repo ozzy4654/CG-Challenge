@@ -18,6 +18,7 @@ Please keep in mind the user experience and best practices for your respective p
 
 <H2>Things to note</H2>
 <p>
+● Clone Repo and use Android Studio to build. Note this sample App will only work on Android Devices 7.0+ <br>
 ● Make sure Map Api Support is enabled for the project. Visit here: https://developers.google.com/maps/documentation/android-sdk/start <br>
 
 Choose one of the following ways to get your API key from Android Studio:<br>
