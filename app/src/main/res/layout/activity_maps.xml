@@ -6,35 +6,27 @@
     android:layout_height="match_parent"
     tools:context=".ui.MapsActivity">
 
-
-<!--    <SearchView-->
-<!--        android:id="@+id/search_box"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginTop="8dp"-->
-<!--        android:queryHint="Search for class locations"-->
-<!--        android:iconifiedByDefault="false"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
-
-<!--    <ProgressBar-->
-<!--        android:id="@+id/search_progress_indicator"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:background="@android:color/white"-->
-<!--        android:indeterminate="true"-->
-<!--        android:padding="8dp"-->
-<!--        android:visibility="gone"-->
-<!--        app:layout_constraintBottom_toBottomOf="@+id/search_box"-->
-<!--        app:layout_constraintEnd_toEndOf="@+id/search_box"-->
-<!--        app:layout_constraintTop_toTopOf="@+id/search_box" />-->
+    <ProgressBar
+        android:id="@+id/search_progress_indicator"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:indeterminate="true"
+        android:padding="@dimen/default_padding"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.83"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
     <include
         android:id="@+id/frag_container"
         layout="@layout/content_main"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/default_margin"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
